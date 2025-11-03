@@ -6,6 +6,7 @@ type Flag = {
   description?: string;
   requireInput: boolean;
   input?: string;
+  noSpace?: boolean;
 };
 
 type Command = {
@@ -32,6 +33,7 @@ const commands: Command[] = [
         description: "Specify ports",
         requireInput: true,
         input: "-",
+        noSpace: true,
       },
       {
         value: "-T",
@@ -58,6 +60,7 @@ const commands: Command[] = [
         value: "-o",
         description: "Output to file",
         requireInput: true,
+        input: "output.nmap",
       },
     ],
     defaultFlags: ["-sC", "-sV"],
@@ -84,7 +87,9 @@ export default function PortScan() {
 
   useEffect(() => {
     const flagStrings = flags.map((flag) =>
-      flag.requireInput ? `${flag.value}${flag.input || ""}` : flag.value,
+      flag.requireInput
+        ? `${flag.value}${flag.noSpace ? "" : " "}${flag.input || ""}`
+        : flag.value,
     );
 
     // setFullCommand(`${command} ${flagStrings.join(" ")} ${target}`);
@@ -121,12 +126,51 @@ export default function PortScan() {
       >
         Copy
       </button>
+
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Presets</legend>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => {
+              setCommand("nmap");
+              setFlags([
+                { value: "-sC", requireInput: false },
+                { value: "-sV", requireInput: false },
+              ]);
+            }}
+          >
+            Nmap Default
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => {
+              setCommand("nmap");
+              setFlags([
+                { value: "-A", requireInput: false },
+                {
+                  value: "-p",
+                  requireInput: true,
+                  input: "1-65535",
+                  noSpace: true,
+                },
+              ]);
+            }}
+          >
+            Nmap Aggressive Full Port Scan
+          </button>
+        </div>
+      </fieldset>
+
       <div className="flex gap-4">
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Command</legend>
           <select
             defaultValue="nmap"
             className="select"
+            value={command}
             onChange={(e) => setCommand(e.target.value)}
           >
             <option>nmap</option>
@@ -150,29 +194,31 @@ export default function PortScan() {
         <legend className="fieldset-legend">Flags</legend>
         <div className="flex flex-col gap-4">
           {allowedFlags.map((flag) => (
-            <label key={flag.value} className="hover:cursor-pointer">
-              <input
-                type="checkbox"
-                className="checkbox mr-2"
-                value={flag.value}
-                checked={flags.some((f) => f.value === flag.value)}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (e.target.checked) {
-                    setFlags((prev) => [...prev, flag]);
-                  } else {
-                    setFlags((prev) => prev.filter((f) => f.value !== value));
-                  }
-                }}
-              />
-              {flag.value}: {flag.description}
-              {flag.requireInput ? " (requires input)" : ""}
+            <div key={flag.value} className="flex h-6 items-center">
+              <label className="hover:cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="checkbox mr-2"
+                  value={flag.value}
+                  checked={flags.some((f) => f.value === flag.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (e.target.checked) {
+                      setFlags((prev) => [...prev, flag]);
+                    } else {
+                      setFlags((prev) => prev.filter((f) => f.value !== value));
+                    }
+                  }}
+                />
+                {flag.value}: {flag.description}
+                {flag.requireInput ? " (requires input)" : ""}
+              </label>
               {flag.requireInput &&
                 flags.some((f) => f.value === flag.value) && (
                   <input
                     type="text"
                     className="input ml-2"
-                    placeholder="input"
+                    placeholder="Flag input"
                     value={
                       flags.find((f) => f.value === flag.value)?.input || ""
                     }
@@ -188,7 +234,7 @@ export default function PortScan() {
                     }}
                   />
                 )}
-            </label>
+            </div>
           ))}
         </div>
       </fieldset>
