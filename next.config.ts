@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "export",
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
+  basePath: process.env.PAGES_BASE_PATH || "",
 };
 
 const withMDX = createMDX({
