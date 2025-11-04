@@ -54,6 +54,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
+      - name: Disable telemetry
+        run: pnpm exec next telemetry disable
+
       - name: Build with Next.js
         run: pnpm run build
         env:
