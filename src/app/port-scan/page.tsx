@@ -92,8 +92,6 @@ export default function PortScan() {
         : flag.value,
     );
 
-    // setFullCommand(`${command} ${flagStrings.join(" ")} ${target}`);
-
     setFullCommand([command, ...flagStrings, target].join(" "));
   }, [command, flags, target]);
 
@@ -168,7 +166,6 @@ export default function PortScan() {
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Command</legend>
           <select
-            defaultValue="nmap"
             className="select"
             value={command}
             onChange={(e) => setCommand(e.target.value)}
