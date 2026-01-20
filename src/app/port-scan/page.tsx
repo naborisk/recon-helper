@@ -60,6 +60,8 @@ const commands: Command[] = [
   },
 ];
 
+import FlagsSelector from "../../components/FlagsSelector";
+
 export default function PortScan() {
   const [command, setCommand] = useState("nmap");
   const [target, setTarget] = useState("10.10.10.10");
@@ -146,58 +148,9 @@ export default function PortScan() {
         </fieldset>
       </div>
 
-      <fieldset className="fieldset mt-4">
-        <legend className="fieldset-legend">Flags</legend>
-        <div className="flex flex-col gap-4">
-          {allowedFlags
-            .filter((f) => showMore || !f.advanced)
-            .map((flag) => (
-              <div key={flag.value} className="flex items-center gap-2">
-                <label className="hover:cursor-pointer flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="checkbox"
-                    value={flag.value}
-                    checked={flags.some((f) => f.value === flag.value)}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (e.target.checked) {
-                        // when adding a flag that requires input, seed with flag.input if present
-                        setFlags((prev) => [...prev, { ...flag }]);
-                      } else {
-                        setFlags((prev) => prev.filter((f) => f.value !== value));
-                      }
-                    }}
-                  />
-                  <span className="font-mono">{flag.value}</span>
-                  <span className="text-sm">{flag.description}</span>
-                  {flag.requireInput ? <span className="text-xs text-gray-500"> (requires input)</span> : null}
-                </label>
+      {/* Flags selector component */}
+      <FlagsSelector allowedFlags={allowedFlags} flags={flags} setFlags={setFlags} />
 
-                {flag.requireInput && flags.some((f) => f.value === flag.value) && (
-                  <input
-                    type="text"
-                    className="input ml-2"
-                    placeholder={flag.description || "value"}
-                    value={flags.find((f) => f.value === flag.value)?.input || ""}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      setFlags((prev) =>
-                        prev.map((f) => (f.value === flag.value ? { ...f, input: inputValue } : f)),
-                      );
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-
-          {allowedFlags.some((f) => f.advanced) && (
-            <button type="button" className="btn btn-ghost btn-sm w-32" onClick={() => setShowMore((s) => !s)}>
-              {showMore ? "Show less" : "Show more"}
-            </button>
-          )}
-        </div>
-      </fieldset>
     </>
   );
 }
