@@ -73,6 +73,8 @@ export default function Fuzzing() {
   const storageKey = "recon:fuzzing";
   const [loaded, setLoaded] = useState(false);
 
+  const [savedPresent, setSavedPresent] = useState(false);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -80,6 +82,7 @@ export default function Fuzzing() {
         const parsed = JSON.parse(raw);
         if (parsed.command) setCommand(parsed.command);
         if (parsed.flags) setFlags(parsed.flags);
+        setSavedPresent(!!(parsed && (parsed.flags || parsed.command)));
       }
     } catch (e) {
       // ignore
@@ -97,14 +100,14 @@ export default function Fuzzing() {
     }
   }, [loaded, command, flags]);
 
-  // When the command changes, only set defaults if there are no flags currently (i.e., first load)
+  // When the command changes, only set defaults if there are no flags currently AND there was no saved data
   useEffect(() => {
     const cmd = commands.find((c) => c.name === command) as Command;
-    if (cmd && flags.length === 0) {
+    if (cmd && flags.length === 0 && !savedPresent) {
       const defaults = cmd.flags.filter((f) => cmd.defaultFlags?.includes(f.value));
       setFlags(defaults);
     }
-  }, [command]);
+  }, [command, savedPresent, flags.length]);
 
   useEffect(() => {
     const cmd = commands.find((c) => c.name === command) as Command;

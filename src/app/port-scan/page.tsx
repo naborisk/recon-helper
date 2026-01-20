@@ -75,6 +75,8 @@ export default function PortScan() {
   const storageKey = "recon:port-scan";
   const [loaded, setLoaded] = useState(false);
 
+  const [savedPresent, setSavedPresent] = useState(false);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -83,6 +85,7 @@ export default function PortScan() {
         if (parsed.command) setCommand(parsed.command);
         if (parsed.target) setTarget(parsed.target);
         if (parsed.flags) setFlags(parsed.flags);
+        setSavedPresent(!!(parsed && (parsed.flags || parsed.command || parsed.target)));
       }
     } catch (e) {
       // ignore
@@ -116,14 +119,15 @@ export default function PortScan() {
     const cmd = commands.find((c) => c.name === command);
     if (cmd) {
       setAllowedFlags(cmd.flags);
-      // Only reset flags to defaults when not loaded from storage
-      if (!loaded) {
+      // Only populate defaults when there was no saved data and flags are empty
+      if (!savedPresent && flags.length === 0) {
         const defaultFlags: Flag[] = cmd.flags.filter((flag) => {
           return cmd.defaultFlags?.includes(flag.value);
         });
         setFlags(defaultFlags);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [command, loaded]);
 
   return (
