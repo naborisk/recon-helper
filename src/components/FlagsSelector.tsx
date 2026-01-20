@@ -65,6 +65,7 @@ export default function FlagsSelector({
                       setFlags((prev) => prev.map((f) => (f.value === flag.value ? { ...f, input: iv } : f)));
                     }}
                     disabled={!checked || !flag.requireInput}
+                    style={{ visibility: flag.requireInput ? "visible" : "hidden" }}
                   />
                 </div>
               </div>
