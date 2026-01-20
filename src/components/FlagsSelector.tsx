@@ -55,11 +55,21 @@ export default function FlagsSelector({
                       if (e.target.checked) {
                         updateFlags((prev) => {
                           const next = [...prev, { ...flag }];
+                          try {
+                            const raw = localStorage.getItem(storageKey || "");
+                            const parsed = raw ? JSON.parse(raw) : {};
+                            localStorage.setItem(storageKey || "", JSON.stringify({ ...parsed, flags: next, command: parsed.command || undefined }));
+                          } catch {}
                           return next;
                         });
                       } else {
                         updateFlags((prev) => {
                           const next = prev.filter((f) => f.value !== value);
+                          try {
+                            const raw = localStorage.getItem(storageKey || "");
+                            const parsed = raw ? JSON.parse(raw) : {};
+                            localStorage.setItem(storageKey || "", JSON.stringify({ ...parsed, flags: next, command: parsed.command || undefined }));
+                          } catch {}
                           return next;
                         });
                       }
@@ -81,6 +91,14 @@ export default function FlagsSelector({
                       const iv = e.target.value;
                       updateFlags((prev) => {
                         const next = prev.map((f) => (f.value === flag.value ? { ...f, input: iv } : f));
+                        // merge into existing saved object if present
+                        try {
+                          const raw = localStorage.getItem(storageKey || "");
+                          const parsed = raw ? JSON.parse(raw) : {};
+                          localStorage.setItem(storageKey || "", JSON.stringify({ ...parsed, flags: next, command: parsed.command }));
+                        } catch {
+                          // ignore
+                        }
                         return next;
                       });
                     }}
