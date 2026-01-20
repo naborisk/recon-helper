@@ -70,6 +70,28 @@ export default function Fuzzing() {
   const [fullCommand, setFullCommand] = useState<string>("");
   const [showMore, setShowMore] = useState(false);
 
+  const storageKey = "recon:fuzzing";
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.command) setCommand(parsed.command);
+        if (parsed.flags) setFlags(parsed.flags);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ command, flags }));
+    } catch (e) {
+      // ignore
+    }
+  }, [command, flags]);
+
   useEffect(() => {
     const cmd = commands.find((c) => c.name === command) as Command;
     if (cmd) {
@@ -121,6 +143,7 @@ export default function Fuzzing() {
         >
           Docs
         </a>
+        <button type="button" className="btn btn-warning" onClick={() => { localStorage.removeItem(storageKey); setCommand('ffuf'); setFlags([]); }}>Clear local storage</button>
       </div>
 
       <fieldset className="fieldset">

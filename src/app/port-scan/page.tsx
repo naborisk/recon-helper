@@ -71,6 +71,30 @@ export default function PortScan() {
 
   const [allowedFlags, setAllowedFlags] = useState<Flag[]>([]);
 
+  // load/save from localStorage
+  const storageKey = "recon:port-scan";
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.command) setCommand(parsed.command);
+        if (parsed.target) setTarget(parsed.target);
+        if (parsed.flags) setFlags(parsed.flags);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ command, target, flags }));
+    } catch (e) {
+      // ignore
+    }
+  }, [command, target, flags]);
+
   useEffect(() => {
     const flagStrings = flags.map((flag) =>
       flag.requireInput
@@ -119,6 +143,7 @@ export default function PortScan() {
         >
           Docs
         </a>
+        <button type="button" className="btn btn-warning" onClick={() => { localStorage.removeItem(storageKey); setCommand('nmap'); setTarget('10.10.10.10'); setFlags([]); }}>Clear local storage</button>
       </div>
 
       <fieldset className="fieldset">
