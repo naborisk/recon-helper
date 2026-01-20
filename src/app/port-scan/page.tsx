@@ -73,6 +73,8 @@ export default function PortScan() {
 
   // load/save from localStorage
   const storageKey = "recon:port-scan";
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -84,16 +86,19 @@ export default function PortScan() {
       }
     } catch (e) {
       // ignore
+    } finally {
+      setLoaded(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!loaded) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify({ command, target, flags }));
     } catch (e) {
       // ignore
     }
-  }, [command, target, flags]);
+  }, [loaded, command, target, flags]);
 
   useEffect(() => {
     const flagStrings = flags.map((flag) =>
