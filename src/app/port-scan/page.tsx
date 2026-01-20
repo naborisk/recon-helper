@@ -7,6 +7,7 @@ type Flag = {
   requireInput: boolean;
   input?: string;
   noSpace?: boolean;
+  advanced?: boolean;
 };
 
 type Command = {
@@ -21,59 +22,41 @@ const commands: Command[] = [
     name: "nmap",
     description: "Network mapper",
     flags: [
-      {
-        value: "-sC",
-        description: "Enable default scripts",
-        requireInput: false,
-      },
+      { value: "-sC", description: "Enable default scripts", requireInput: false },
       { value: "-sV", description: "Version detection", requireInput: false },
-      { value: "-O", description: "Enable OS detection", requireInput: false },
-      {
-        value: "-p",
-        description: "Specify ports",
-        requireInput: true,
-        input: "-",
-        noSpace: true,
-      },
-      {
-        value: "-T",
-        description: "Set timing template",
-        requireInput: true,
-      },
-      {
-        value: "--open",
-        description: "Show only open ports",
-        requireInput: false,
-      },
-      {
-        value: "-A",
-        description:
-          "Enable OS detection, version detection, script scanning, and traceroute",
-        requireInput: false,
-      },
-      {
-        value: "-Pn",
-        description: "Skip host discovery",
-        requireInput: false,
-      },
-      {
-        value: "-o",
-        description: "Output to file",
-        requireInput: true,
-        input: "output.nmap",
-      },
+      { value: "-O", description: "Enable OS detection", requireInput: false, advanced: true },
+      { value: "-p", description: "Specify ports (ex: 22,80,1-1024)", requireInput: true, noSpace: true },
+      { value: "-T", description: "Set timing template (0-5)", requireInput: true, input: "4" },
+      { value: "--open", description: "Show only open ports", requireInput: false },
+      { value: "-A", description: "Aggressive scan (OS,version,scripts,traceroute)", requireInput: false, advanced: true },
+      { value: "-Pn", description: "Skip host discovery (treat hosts as online)", requireInput: false, advanced: true },
+      { value: "-oN", description: "Output normal to file", requireInput: true, input: "output.nmap" , advanced: true},
+      { value: "-oX", description: "Output XML to file", requireInput: true, input: "output.xml", advanced: true },
+      { value: "-oG", description: "Greppable output to file", requireInput: true, input: "output.gnmap", advanced: true },
+      { value: "--reason", description: "Display reason a port is in a particular state", requireInput: false, advanced: true },
     ],
     defaultFlags: ["-sC", "-sV"],
   },
   {
     name: "masscan",
     description: "Mass port scanner",
-    flags: [],
+    flags: [
+      { value: "-p", description: "Specify ports (ex: 80,443 or 1-65535)", requireInput: true, noSpace: true },
+      { value: "--rate", description: "Packets per second (use carefully)", requireInput: true, input: "1000", advanced: true },
+      { value: "-e", description: "Specify interface", requireInput: true, input: "eth0", advanced: true },
+      { value: "-oL", description: "Output list to file", requireInput: true, input: "output.txt", advanced: true },
+    ],
+    defaultFlags: ["-p"],
   },
   {
     name: "rustscan",
     description: "Fast port scanner",
-    flags: [],
+    flags: [
+      { value: "-a", description: "Target address", requireInput: true, input: "10.10.10.10", advanced: false },
+      { value: "-b", description: "Batch size / threads", requireInput: true, input: "1024", advanced: true },
+      { value: "--ulimit", description: "Set ulimit", requireInput: true, input: "4096", advanced: true },
+    ],
+    defaultFlags: [],
   },
 ];
 
@@ -82,6 +65,7 @@ export default function PortScan() {
   const [target, setTarget] = useState("10.10.10.10");
   const [flags, setFlags] = useState<Flag[]>([]);
   const [fullCommand, setFullCommand] = useState("");
+  const [showMore, setShowMore] = useState(false);
 
   const [allowedFlags, setAllowedFlags] = useState<Flag[]>([]);
 
@@ -92,7 +76,9 @@ export default function PortScan() {
         : flag.value,
     );
 
-    setFullCommand([command, ...flagStrings, target].join(" "));
+    // Build command without extra empty parts
+    const parts = [command, ...flagStrings, target].filter(Boolean);
+    setFullCommand(parts.join(" "));
   }, [command, flags, target]);
 
   useEffect(() => {
@@ -115,124 +101,101 @@ export default function PortScan() {
           <code>{fullCommand}</code>
         </pre>
       </div>
-      <button
-        type="button"
-        onClick={() => {
-          navigator.clipboard.writeText(fullCommand);
-        }}
-        className="btn btn-primary"
-      >
-        Copy
-      </button>
+      <div className="flex gap-2 my-2">
+        <button
+          type="button"
+          onClick={() => navigator.clipboard.writeText(fullCommand)}
+          className="btn btn-primary"
+        >
+          Copy
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => {
+            // quick run preset: basic nmap scan
+            setCommand("nmap");
+            setFlags([{ value: "-sC", requireInput: false }, { value: "-sV", requireInput: false }]);
+          }}
+        >
+          Quick Nmap
+        </button>
+      </div>
 
       <fieldset className="fieldset">
         <legend className="fieldset-legend">Presets</legend>
         <div className="flex gap-4">
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={() => {
-              setCommand("nmap");
-              setFlags([
-                { value: "-sC", requireInput: false },
-                { value: "-sV", requireInput: false },
-              ]);
-            }}
-          >
-            Nmap Default
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={() => {
-              setCommand("nmap");
-              setFlags([
-                { value: "-A", requireInput: false },
-                {
-                  value: "-p",
-                  requireInput: true,
-                  input: "1-65535",
-                  noSpace: true,
-                },
-              ]);
-            }}
-          >
-            Nmap Aggressive Full Port Scan
-          </button>
+          <button type="button" className="btn btn-sm btn-primary" onClick={() => { setCommand("nmap"); setFlags([{ value: "-sC", requireInput: false }, { value: "-sV", requireInput: false }]); }}>Nmap Default</button>
+          <button type="button" className="btn btn-sm btn-primary" onClick={() => { setCommand("nmap"); setFlags([{ value: "-A", requireInput: false }, { value: "-p", requireInput: true, input: "1-65535", noSpace: true }]); }}>Nmap Aggressive Full Port Scan</button>
+          <button type="button" className="btn btn-sm btn-primary" onClick={() => { setCommand("masscan"); setFlags([{ value: "-p", requireInput: true, input: "1-65535", noSpace: true }, { value: "--rate", requireInput: true, input: "1000", advanced: true }]); }}>Masscan Quick</button>
         </div>
       </fieldset>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 mt-4">
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Command</legend>
-          <select
-            className="select"
-            value={command}
-            onChange={(e) => setCommand(e.target.value)}
-          >
-            <option>nmap</option>
-            <option>masscan</option>
-            <option>rustscan</option>
+          <select className="select" value={command} onChange={(e) => setCommand(e.target.value)}>
+            {commands.map((c) => (
+              <option key={c.name}>{c.name}</option>
+            ))}
           </select>
         </fieldset>
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Target</legend>
-          <input
-            type="text"
-            className="input"
-            placeholder="10.10.10.10"
-            value={target}
-            onChange={(e) => setTarget(e.target.value)}
-          />
+          <input type="text" className="input" placeholder="10.10.10.10" value={target} onChange={(e) => setTarget(e.target.value)} />
         </fieldset>
       </div>
 
-      <fieldset className="fieldset">
+      <fieldset className="fieldset mt-4">
         <legend className="fieldset-legend">Flags</legend>
         <div className="flex flex-col gap-4">
-          {allowedFlags.map((flag) => (
-            <div key={flag.value} className="flex h-6 items-center">
-              <label className="hover:cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="checkbox mr-2"
-                  value={flag.value}
-                  checked={flags.some((f) => f.value === flag.value)}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (e.target.checked) {
-                      setFlags((prev) => [...prev, flag]);
-                    } else {
-                      setFlags((prev) => prev.filter((f) => f.value !== value));
-                    }
-                  }}
-                />
-                {flag.value}: {flag.description}
-                {flag.requireInput ? " (requires input)" : ""}
-              </label>
-              {flag.requireInput &&
-                flags.some((f) => f.value === flag.value) && (
+          {allowedFlags
+            .filter((f) => showMore || !f.advanced)
+            .map((flag) => (
+              <div key={flag.value} className="flex items-center gap-2">
+                <label className="hover:cursor-pointer flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="checkbox"
+                    value={flag.value}
+                    checked={flags.some((f) => f.value === flag.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (e.target.checked) {
+                        // when adding a flag that requires input, seed with flag.input if present
+                        setFlags((prev) => [...prev, { ...flag }]);
+                      } else {
+                        setFlags((prev) => prev.filter((f) => f.value !== value));
+                      }
+                    }}
+                  />
+                  <span className="font-mono">{flag.value}</span>
+                  <span className="text-sm">{flag.description}</span>
+                  {flag.requireInput ? <span className="text-xs text-gray-500"> (requires input)</span> : null}
+                </label>
+
+                {flag.requireInput && flags.some((f) => f.value === flag.value) && (
                   <input
                     type="text"
                     className="input ml-2"
-                    placeholder="Flag input"
-                    value={
-                      flags.find((f) => f.value === flag.value)?.input || ""
-                    }
+                    placeholder={flag.description || "value"}
+                    value={flags.find((f) => f.value === flag.value)?.input || ""}
                     onChange={(e) => {
                       const inputValue = e.target.value;
                       setFlags((prev) =>
-                        prev.map((f) =>
-                          f.value === flag.value
-                            ? { ...f, input: inputValue }
-                            : f,
-                        ),
+                        prev.map((f) => (f.value === flag.value ? { ...f, input: inputValue } : f)),
                       );
                     }}
                   />
                 )}
-            </div>
-          ))}
+              </div>
+            ))}
+
+          {allowedFlags.some((f) => f.advanced) && (
+            <button type="button" className="btn btn-ghost btn-sm w-32" onClick={() => setShowMore((s) => !s)}>
+              {showMore ? "Show less" : "Show more"}
+            </button>
+          )}
         </div>
       </fieldset>
     </>
