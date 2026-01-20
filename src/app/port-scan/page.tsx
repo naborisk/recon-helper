@@ -190,7 +190,7 @@ export default function PortScan() {
       </div>
 
       {/* Flags selector component */}
-      <FlagsSelector allowedFlags={allowedFlags} flags={flags} setFlags={setFlags} />
+      <FlagsSelector allowedFlags={allowedFlags} flags={flags} setFlags={setFlags} storageKey={storageKey} />
 
     </>
   );

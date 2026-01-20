@@ -185,7 +185,7 @@ export default function Fuzzing() {
         </fieldset>
       </div>
 
-      <FlagsSelector allowedFlags={allowedFlags} flags={flags} setFlags={setFlags} />
+      <FlagsSelector allowedFlags={allowedFlags} flags={flags} setFlags={setFlags} storageKey={storageKey} />
 
     </>
   );

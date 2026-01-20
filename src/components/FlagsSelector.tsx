@@ -14,12 +14,23 @@ export default function FlagsSelector({
   allowedFlags,
   flags,
   setFlags,
+  storageKey,
 }: {
   allowedFlags: Flag[];
   flags: Flag[];
   setFlags: (f: Flag[] | ((prev: Flag[]) => Flag[])) => void;
+  storageKey?: string;
 }) {
   const [showMore, setShowMore] = useState(false);
+
+  // wrapper to ensure when flags change via this component, external storage can react
+  const updateFlags = (updater: Flag[] | ((prev: Flag[]) => Flag[])) => {
+    if (typeof updater === "function") {
+      setFlags((prev: Flag[]) => (updater as (prev: Flag[]) => Flag[])(prev));
+    } else {
+      setFlags(updater);
+    }
+  };
 
   return (
     <fieldset className="fieldset mt-4">
@@ -42,9 +53,17 @@ export default function FlagsSelector({
                     onChange={(e) => {
                       const value = e.target.value;
                       if (e.target.checked) {
-                        setFlags((prev) => [...prev, { ...flag }]);
+                        updateFlags((prev) => {
+                          const next = [...prev, { ...flag }];
+                          if (storageKey) localStorage.setItem(storageKey, JSON.stringify({ flags: next }));
+                          return next;
+                        });
                       } else {
-                        setFlags((prev) => prev.filter((f) => f.value !== value));
+                        updateFlags((prev) => {
+                          const next = prev.filter((f) => f.value !== value);
+                          if (storageKey) localStorage.setItem(storageKey, JSON.stringify({ flags: next }));
+                          return next;
+                        });
                       }
                     }}
                   />
@@ -62,7 +81,11 @@ export default function FlagsSelector({
                     value={inputValue}
                     onChange={(e) => {
                       const iv = e.target.value;
-                      setFlags((prev) => prev.map((f) => (f.value === flag.value ? { ...f, input: iv } : f)));
+                      updateFlags((prev) => {
+                        const next = prev.map((f) => (f.value === flag.value ? { ...f, input: iv } : f));
+                        if (storageKey) localStorage.setItem(storageKey, JSON.stringify({ flags: next }));
+                        return next;
+                      });
                     }}
                     disabled={!checked || !flag.requireInput}
                     style={{ visibility: flag.requireInput ? "visible" : "hidden" }}
