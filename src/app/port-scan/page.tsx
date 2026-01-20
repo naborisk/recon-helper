@@ -111,17 +111,14 @@ export default function PortScan() {
         >
           Copy
         </button>
-        <button
-          type="button"
+        <a
           className="btn btn-secondary"
-          onClick={() => {
-            // quick run preset: basic nmap scan
-            setCommand("nmap");
-            setFlags([{ value: "-sC", requireInput: false }, { value: "-sV", requireInput: false }]);
-          }}
+          href={command === 'nmap' ? 'https://nmap.org/book/man.html' : command === 'masscan' ? 'https://github.com/robertdavidgraham/masscan' : command === 'rustscan' ? 'https://github.com/RustScan/RustScan' : '#'}
+          target="_blank"
+          rel="noreferrer"
         >
-          Quick Nmap
-        </button>
+          Docs
+        </a>
       </div>
 
       <fieldset className="fieldset">

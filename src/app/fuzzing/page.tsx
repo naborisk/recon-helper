@@ -113,19 +113,14 @@ export default function Fuzzing() {
         >
           Copy
         </button>
-        <button
-          type="button"
+        <a
           className="btn btn-secondary"
-          onClick={() => {
-            setCommand("ffuf");
-            setFlags([
-              { value: "-u", requireInput: true, input: "http://example.com/FUZZ" },
-              { value: "-w", requireInput: true, input: "/usr/share/wordlists/common.txt" },
-            ]);
-          }}
+          href={command === 'ffuf' ? 'https://ffuf.dev/' : command === 'dirsearch' ? 'https://github.com/maurosoria/dirsearch' : command === 'dirbuster' ? 'https://www.owasp.org/index.php/Category:OWASP_DirBuster_Project' : '#'}
+          target="_blank"
+          rel="noreferrer"
         >
-          Quick FFUF
-        </button>
+          Docs
+        </a>
       </div>
 
       <fieldset className="fieldset">
