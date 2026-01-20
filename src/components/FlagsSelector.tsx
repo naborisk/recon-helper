@@ -73,7 +73,7 @@ export default function FlagsSelector({
           })}
 
         {allowedFlags.some((f) => f.advanced) && (
-          <button type="button" className="btn btn-ghost btn-sm w-32" onClick={() => setShowMore((s) => !s)}>
+          <button type="button" className="btn btn-sm w-32 btn-outline" onClick={() => setShowMore((s) => !s)}>
             {showMore ? "Show less" : "Show more"}
           </button>
         )}
