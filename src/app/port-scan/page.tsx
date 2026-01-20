@@ -116,13 +116,15 @@ export default function PortScan() {
     const cmd = commands.find((c) => c.name === command);
     if (cmd) {
       setAllowedFlags(cmd.flags);
-      // Reset flags to default for the selected command
-      const defaultFlags: Flag[] = cmd.flags.filter((flag) => {
-        return cmd.defaultFlags?.includes(flag.value);
-      });
-      setFlags(defaultFlags);
+      // Only reset flags to defaults when not loaded from storage
+      if (!loaded) {
+        const defaultFlags: Flag[] = cmd.flags.filter((flag) => {
+          return cmd.defaultFlags?.includes(flag.value);
+        });
+        setFlags(defaultFlags);
+      }
     }
-  }, [command]);
+  }, [command, loaded]);
 
   return (
     <>
