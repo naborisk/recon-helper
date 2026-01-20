@@ -55,13 +55,11 @@ export default function FlagsSelector({
                       if (e.target.checked) {
                         updateFlags((prev) => {
                           const next = [...prev, { ...flag }];
-                          if (storageKey) localStorage.setItem(storageKey, JSON.stringify({ flags: next }));
                           return next;
                         });
                       } else {
                         updateFlags((prev) => {
                           const next = prev.filter((f) => f.value !== value);
-                          if (storageKey) localStorage.setItem(storageKey, JSON.stringify({ flags: next }));
                           return next;
                         });
                       }
@@ -83,7 +81,6 @@ export default function FlagsSelector({
                       const iv = e.target.value;
                       updateFlags((prev) => {
                         const next = prev.map((f) => (f.value === flag.value ? { ...f, input: iv } : f));
-                        if (storageKey) localStorage.setItem(storageKey, JSON.stringify({ flags: next }));
                         return next;
                       });
                     }}
