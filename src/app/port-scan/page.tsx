@@ -127,6 +127,7 @@ export default function PortScan() {
           <button type="button" className="btn btn-sm btn-primary" onClick={() => { setCommand("nmap"); setFlags([{ value: "-sC", requireInput: false }, { value: "-sV", requireInput: false }]); }}>Nmap Default</button>
           <button type="button" className="btn btn-sm btn-primary" onClick={() => { setCommand("nmap"); setFlags([{ value: "-A", requireInput: false }, { value: "-p", requireInput: true, input: "1-65535", noSpace: true }]); }}>Nmap Aggressive Full Port Scan</button>
           <button type="button" className="btn btn-sm btn-primary" onClick={() => { setCommand("masscan"); setFlags([{ value: "-p", requireInput: true, input: "1-65535", noSpace: true }, { value: "--rate", requireInput: true, input: "1000", advanced: true }]); }}>Masscan Quick</button>
+          <button type="button" className="btn btn-sm btn-primary" onClick={() => { setCommand("rustscan"); setFlags([{ value: "-a", requireInput: true, input: "10.10.10.10" }, { value: "-b", requireInput: true, input: "1024" }]); }}>Rustscan Quick</button>
         </div>
       </fieldset>
 
