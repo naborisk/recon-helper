@@ -17,7 +17,7 @@ export default function FlagsSelector({
 }: {
   allowedFlags: Flag[];
   flags: Flag[];
-  setFlags: (f: Flag[]) => void;
+  setFlags: (f: Flag[] | ((prev: Flag[]) => Flag[])) => void;
 }) {
   const [showMore, setShowMore] = useState(false);
 
