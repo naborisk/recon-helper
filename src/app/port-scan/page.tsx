@@ -143,7 +143,14 @@ export default function PortScan() {
         >
           Docs
         </a>
-        <button type="button" className="btn btn-warning" onClick={() => { localStorage.removeItem(storageKey); setCommand('nmap'); setTarget('10.10.10.10'); setFlags([]); }}>Clear local storage</button>
+        <button type="button" className="btn btn-error" onClick={() => {
+          // reset to defaults for current command
+          localStorage.removeItem(storageKey);
+          const cmd = commands.find(c => c.name === 'nmap');
+          setCommand('nmap');
+          setTarget('10.10.10.10');
+          if (cmd) setFlags(cmd.flags.filter(f => cmd.defaultFlags?.includes(f.value)));
+        }}>Reset</button>
       </div>
 
       <fieldset className="fieldset">

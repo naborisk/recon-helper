@@ -143,7 +143,7 @@ export default function Fuzzing() {
         >
           Docs
         </a>
-        <button type="button" className="btn btn-warning" onClick={() => { localStorage.removeItem(storageKey); setCommand('ffuf'); setFlags([]); }}>Clear local storage</button>
+        <button type="button" className="btn btn-error" onClick={() => { localStorage.removeItem(storageKey); const cmd = commands.find(c => c.name === 'ffuf'); setCommand('ffuf'); if (cmd) setFlags(cmd.flags.filter(f => cmd.defaultFlags?.includes(f.value))); }}>Reset</button>
       </div>
 
       <fieldset className="fieldset">
