@@ -3,19 +3,20 @@ import { useEffect, useState } from "react";
 import CommandPreview from "../../components/CommandPreview";
 import FlagsSelector from "../../components/FlagsSelector";
 import PresetButtons from "../../components/PresetButtons";
-import { fuzzingCommands, fuzzingPresets } from "../../data/fuzzingCommands";
+import { vulnScanCommands, vulnScanPresets } from "../../data/vulnScanCommands";
 import type { Flag } from "../../types/commands";
 
-const STORAGE_KEY = "recon:fuzzing";
+const STORAGE_KEY = "recon:vuln-scan";
 
-export default function Fuzzing() {
-  const [command, setCommand] = useState("ffuf");
+export default function VulnScan() {
+  const [command, setCommand] = useState("nikto");
+  const [target, setTarget] = useState("http://example.com");
   const [flags, setFlags] = useState<Flag[]>([]);
   const [fullCommand, setFullCommand] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [savedPresent, setSavedPresent] = useState(false);
 
-  const currentCmd = fuzzingCommands.find((c) => c.name === command);
+  const currentCmd = vulnScanCommands.find((c) => c.name === command);
   const allowedFlags = currentCmd?.flags || [];
 
   // Load from localStorage on mount
@@ -25,10 +26,10 @@ export default function Fuzzing() {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed.command) setCommand(parsed.command);
+        if (parsed.target) setTarget(parsed.target);
         if (parsed.flags) {
-          // Merge stored flags with command definitions to restore full properties
-          const cmd = fuzzingCommands.find(
-            (c) => c.name === (parsed.command || "ffuf"),
+          const cmd = vulnScanCommands.find(
+            (c) => c.name === (parsed.command || "nikto"),
           );
           const mergedFlags = parsed.flags.map((stored: Flag) => {
             const def = cmd?.flags.find((f) => f.value === stored.value);
@@ -36,7 +37,7 @@ export default function Fuzzing() {
           });
           setFlags(mergedFlags);
         }
-        setSavedPresent(!!(parsed.flags || parsed.command));
+        setSavedPresent(!!(parsed.flags || parsed.command || parsed.target));
       }
     } catch {
       // ignore
@@ -49,11 +50,14 @@ export default function Fuzzing() {
   useEffect(() => {
     if (!loaded) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ command, flags }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ command, target, flags }),
+      );
     } catch {
       // ignore
     }
-  }, [loaded, command, flags]);
+  }, [loaded, command, target, flags]);
 
   // Build command string
   useEffect(() => {
@@ -62,13 +66,17 @@ export default function Fuzzing() {
         ? `${flag.value}${flag.noSpace ? "" : " "}${flag.input || ""}`
         : flag.value,
     );
-    const parts = [command, ...flagStrings].filter(Boolean);
-    setFullCommand(parts.join(" "));
-  }, [command, flags]);
+    // whatweb takes URL as positional arg
+    const parts =
+      command === "whatweb"
+        ? [command, ...flagStrings, target]
+        : [command, ...flagStrings];
+    setFullCommand(parts.filter(Boolean).join(" "));
+  }, [command, flags, target]);
 
   // Set defaults when command changes (only if no saved data)
   useEffect(() => {
-    const cmd = fuzzingCommands.find((c) => c.name === command);
+    const cmd = vulnScanCommands.find((c) => c.name === command);
     if (cmd && !savedPresent && flags.length === 0) {
       const defaultFlags = cmd.flags.filter((f) =>
         cmd.defaultFlags?.includes(f.value),
@@ -79,8 +87,9 @@ export default function Fuzzing() {
 
   const handleReset = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setCommand("ffuf");
-    const cmd = fuzzingCommands.find((c) => c.name === "ffuf");
+    setCommand("nikto");
+    setTarget("http://example.com");
+    const cmd = vulnScanCommands.find((c) => c.name === "nikto");
     if (cmd) {
       setFlags(cmd.flags.filter((f) => cmd.defaultFlags?.includes(f.value)));
     }
@@ -89,8 +98,7 @@ export default function Fuzzing() {
 
   const handleCommandChange = (newCommand: string) => {
     setCommand(newCommand);
-    // Load defaults for new command
-    const cmd = fuzzingCommands.find((c) => c.name === newCommand);
+    const cmd = vulnScanCommands.find((c) => c.name === newCommand);
     if (cmd) {
       const defaultFlags = cmd.flags.filter((f) =>
         cmd.defaultFlags?.includes(f.value),
@@ -99,7 +107,7 @@ export default function Fuzzing() {
     }
   };
 
-  const presetButtons = fuzzingPresets.map((preset) => ({
+  const presetButtons = vulnScanPresets.map((preset) => ({
     label: preset.label,
     description: preset.description,
     onClick: () => {
@@ -108,45 +116,21 @@ export default function Fuzzing() {
     },
   }));
 
-  // Get the URL flag for quick access
-  const urlFlag = flags.find((f) => f.value === "-u");
-  const urlValue = urlFlag?.input || "";
-
-  const handleUrlChange = (newUrl: string) => {
-    setFlags((prev) => {
-      const hasUrl = prev.some((f) => f.value === "-u");
-      if (hasUrl) {
-        return prev.map((f) =>
-          f.value === "-u" ? { ...f, input: newUrl } : f,
-        );
-      }
-      // Add -u flag if not present
-      const urlFlagDef = allowedFlags.find((f) => f.value === "-u");
-      if (urlFlagDef) {
-        return [...prev, { ...urlFlagDef, input: newUrl }];
-      }
-      return prev;
-    });
-  };
-
   return (
     <div className="max-w-4xl">
-      <h1 className="text-2xl font-bold mb-4">Web Fuzzing</h1>
+      <h1 className="text-2xl font-bold mb-4">Vulnerability Scanning</h1>
 
-      {/* Command preview */}
       <CommandPreview
         command={fullCommand}
         docsUrl={currentCmd?.docsUrl || "#"}
         onReset={handleReset}
       />
 
-      {/* Presets */}
       <fieldset className="fieldset mt-6">
         <legend className="fieldset-legend">Quick Presets</legend>
         <PresetButtons presets={presetButtons} />
       </fieldset>
 
-      {/* Command & URL selection */}
       <div className="flex flex-col sm:flex-row gap-4 mt-6">
         <fieldset className="fieldset sm:w-64">
           <legend className="fieldset-legend">Tool</legend>
@@ -155,7 +139,7 @@ export default function Fuzzing() {
             value={command}
             onChange={(e) => handleCommandChange(e.target.value)}
           >
-            {fuzzingCommands.map((c) => (
+            {vulnScanCommands.map((c) => (
               <option key={c.name} value={c.name}>
                 {c.name} - {c.description}
               </option>
@@ -164,21 +148,17 @@ export default function Fuzzing() {
         </fieldset>
 
         <fieldset className="fieldset flex-1">
-          <legend className="fieldset-legend">Target URL</legend>
+          <legend className="fieldset-legend">Target</legend>
           <input
             type="text"
             className="input input-bordered w-full font-mono"
-            placeholder="http://example.com/FUZZ"
-            value={urlValue}
-            onChange={(e) => handleUrlChange(e.target.value)}
+            placeholder="http://example.com"
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
           />
-          <p className="text-xs text-base-content/60 mt-1">
-            Use FUZZ as placeholder for wordlist substitution
-          </p>
         </fieldset>
       </div>
 
-      {/* Flags */}
       <FlagsSelector
         allowedFlags={allowedFlags}
         flags={flags}

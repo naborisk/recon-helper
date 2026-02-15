@@ -7,7 +7,7 @@
   },
   "css": {
     "parser": {
-      "tailwindDirectives": true
+      "cssModules": false
     }
   },
   "files": {

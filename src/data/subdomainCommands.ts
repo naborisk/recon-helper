@@ -1,0 +1,207 @@
+import type { Command, Preset } from "../types/commands";
+
+export const subdomainCommands: Command[] = [
+  {
+    name: "subfinder",
+    description: "Fast passive subdomain discovery",
+    docsUrl: "https://github.com/projectdiscovery/subfinder",
+    flags: [
+      {
+        value: "-d",
+        description: "Target domain",
+        requireInput: true,
+        input: "example.com",
+        category: "general",
+      },
+      {
+        value: "-o",
+        description: "Output file path",
+        requireInput: true,
+        input: "subdomains.txt",
+        category: "output",
+      },
+      {
+        value: "-silent",
+        description: "Show only subdomains in output",
+        requireInput: false,
+        category: "output",
+      },
+      {
+        value: "-recursive",
+        description: "Use recursion on discovered subdomains",
+        requireInput: false,
+        advanced: true,
+        category: "general",
+      },
+      {
+        value: "-all",
+        description: "Use all sources (slower but thorough)",
+        requireInput: false,
+        advanced: true,
+        category: "general",
+      },
+      {
+        value: "-t",
+        description: "Number of concurrent goroutines",
+        requireInput: true,
+        input: "10",
+        advanced: true,
+        category: "performance",
+      },
+      {
+        value: "-timeout",
+        description: "Timeout in seconds",
+        requireInput: true,
+        input: "30",
+        advanced: true,
+        category: "performance",
+      },
+      {
+        value: "-nW",
+        description: "Remove wildcard & dead subdomains",
+        requireInput: false,
+        advanced: true,
+        category: "filter",
+      },
+      {
+        value: "-rL",
+        description: "File containing list of resolvers",
+        requireInput: true,
+        input: "resolvers.txt",
+        advanced: true,
+        category: "general",
+      },
+    ],
+    defaultFlags: ["-d"],
+  },
+  {
+    name: "amass",
+    description: "In-depth attack surface mapping",
+    docsUrl: "https://github.com/owasp-amass/amass",
+    flags: [
+      {
+        value: "enum",
+        description: "Enumeration mode",
+        requireInput: false,
+        category: "general",
+      },
+      {
+        value: "-d",
+        description: "Target domain",
+        requireInput: true,
+        input: "example.com",
+        category: "general",
+      },
+      {
+        value: "-passive",
+        description: "Passive enumeration only (no DNS resolution)",
+        requireInput: false,
+        category: "detection",
+      },
+      {
+        value: "-active",
+        description: "Active enumeration (attempt zone transfers, etc.)",
+        requireInput: false,
+        advanced: true,
+        category: "detection",
+      },
+      {
+        value: "-brute",
+        description: "Enable brute-force subdomain guessing",
+        requireInput: false,
+        advanced: true,
+        category: "detection",
+      },
+      {
+        value: "-o",
+        description: "Output file path",
+        requireInput: true,
+        input: "amass.txt",
+        advanced: true,
+        category: "output",
+      },
+      {
+        value: "-timeout",
+        description: "Timeout in minutes",
+        requireInput: true,
+        input: "15",
+        advanced: true,
+        category: "performance",
+      },
+      {
+        value: "-rf",
+        description: "File containing resolvers",
+        requireInput: true,
+        input: "resolvers.txt",
+        advanced: true,
+        category: "general",
+      },
+    ],
+    defaultFlags: ["enum", "-d", "-passive"],
+  },
+  {
+    name: "assetfinder",
+    description: "Quick subdomain finder",
+    docsUrl: "https://github.com/tomnomnom/assetfinder",
+    flags: [
+      {
+        value: "--subs-only",
+        description: "Only show subdomains (no other assets)",
+        requireInput: false,
+        category: "filter",
+      },
+    ],
+    defaultFlags: ["--subs-only"],
+  },
+];
+
+export const subdomainPresets: Preset[] = [
+  {
+    label: "Subfinder Quick",
+    description: "Fast passive subdomain discovery",
+    command: "subfinder",
+    flags: [
+      { value: "-d", requireInput: true, input: "example.com" },
+      { value: "-silent", requireInput: false },
+    ],
+  },
+  {
+    label: "Subfinder Thorough",
+    description: "All sources with recursion",
+    command: "subfinder",
+    flags: [
+      { value: "-d", requireInput: true, input: "example.com" },
+      { value: "-all", requireInput: false },
+      { value: "-recursive", requireInput: false },
+      { value: "-o", requireInput: true, input: "subdomains.txt" },
+    ],
+  },
+  {
+    label: "Amass Passive",
+    description: "Passive enumeration with OWASP Amass",
+    command: "amass",
+    flags: [
+      { value: "enum", requireInput: false },
+      { value: "-d", requireInput: true, input: "example.com" },
+      { value: "-passive", requireInput: false },
+      { value: "-o", requireInput: true, input: "amass.txt" },
+    ],
+  },
+  {
+    label: "Amass Active Brute",
+    description: "Active enum with brute-force",
+    command: "amass",
+    flags: [
+      { value: "enum", requireInput: false },
+      { value: "-d", requireInput: true, input: "example.com" },
+      { value: "-active", requireInput: false },
+      { value: "-brute", requireInput: false },
+    ],
+  },
+  {
+    label: "Assetfinder Subs",
+    description: "Quick subdomain-only lookup",
+    command: "assetfinder",
+    flags: [{ value: "--subs-only", requireInput: false }],
+  },
+];
