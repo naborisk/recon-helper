@@ -68,6 +68,7 @@ export default function Fuzzing() {
 
   // Set defaults when command changes (only if no saved data)
   useEffect(() => {
+    if (!loaded) return;
     const cmd = fuzzingCommands.find((c) => c.name === command);
     if (cmd && !savedPresent && flags.length === 0) {
       const defaultFlags = cmd.flags.filter((f) =>
@@ -75,7 +76,7 @@ export default function Fuzzing() {
       );
       setFlags(defaultFlags);
     }
-  }, [command, savedPresent, flags.length]);
+  }, [loaded, command, savedPresent, flags.length]);
 
   const handleReset = () => {
     localStorage.removeItem(STORAGE_KEY);

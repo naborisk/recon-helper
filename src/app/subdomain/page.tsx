@@ -79,6 +79,7 @@ export default function Subdomain() {
 
   // Set defaults when command changes (only if no saved data)
   useEffect(() => {
+    if (!loaded) return;
     const cmd = subdomainCommands.find((c) => c.name === command);
     if (cmd && !savedPresent && flags.length === 0) {
       const defaultFlags = cmd.flags.filter((f) =>
@@ -86,7 +87,7 @@ export default function Subdomain() {
       );
       setFlags(defaultFlags);
     }
-  }, [command, savedPresent, flags.length]);
+  }, [loaded, command, savedPresent, flags.length]);
 
   const handleReset = () => {
     localStorage.removeItem(STORAGE_KEY);
